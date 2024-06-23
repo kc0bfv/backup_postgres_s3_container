@@ -54,7 +54,7 @@ if [[ "$BACKUP_BASE" == "" ]]; then
     help
 fi
 
-BACKUP_NAME="$BACKUP_BASE-$(date -Iseconds).sql"
+BACKUP_NAME="/tmp/$BACKUP_BASE-$(date -Iseconds).sql"
 
 echo "Attempting to create backup file..."
 if [[ "$DATABASE_NAME" == "" ]]; then
@@ -64,4 +64,4 @@ else
 fi
 
 echo "Attempting to upload backup file..."
-AWS_DEFAULT_REGION="$AWS_S3_REGION_NAME" /root/.local/bin/aws s3 cp "$BACKUP_NAME" $AWS_STORAGE_BUCKET_NAME && echo "Backup uploaded to S3"
+AWS_DEFAULT_REGION="$AWS_S3_REGION_NAME" /root/.local/bin/aws s3 cp "$BACKUP_NAME" "s3://$AWS_STORAGE_BUCKET_NAME/" && echo "Backup uploaded to S3"
