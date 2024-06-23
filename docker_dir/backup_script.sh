@@ -10,6 +10,7 @@ help () {
     echo "DATABASE_USER"
     echo "DATABASE_PASSWORD"
     echo "BACKUP_BASE"
+    echo "Optional: DATABASE_NAME"
     exit 1
 }
 
@@ -55,10 +56,12 @@ fi
 
 BACKUP_NAME="$BACKUP_BASE-$(date -Iseconds).sql"
 
-PGHOST="$DATABASE_SERVER" PGUSER="$DATABASE_USER" PGPASSWORD="$DATABASE_PASSWORD" pg_dumpall -c > "$BACKUP_NAME"
+echo "Attempting to create backup file..."
+if [[ "$DATABASE_NAME" == "" ]]; then
+    PGHOST="$DATABASE_SERVER" PGUSER="$DATABASE_USER" PGPASSWORD="$DATABASE_PASSWORD" /usr/bin/pg_dumpall -c > "$BACKUP_NAME" && echo "Backup file created for all databases"
+else
+    PGHOST="$DATABASE_SERVER" PGUSER="$DATABASE_USER" PGPASSWORD="$DATABASE_PASSWORD" PGDATABASE="$DATABASE_NAME" /usr/bin/pg_dump -c > "$BACKUP_NAME" && echo "Backup file created for one database"
+fi
 
-echo "Backup file created"
-
-AWS_DEFAULT_REGION="$AWS_S3_REGION_NAME" aws s3 cp "$BACKUP_NAME" $AWS_STORAGE_BUCKET_NAME
-
-echo "Backup uploaded to S3"
+echo "Attempting to upload backup file..."
+AWS_DEFAULT_REGION="$AWS_S3_REGION_NAME" /root/.local/bin/aws s3 cp "$BACKUP_NAME" $AWS_STORAGE_BUCKET_NAME && echo "Backup uploaded to S3"
